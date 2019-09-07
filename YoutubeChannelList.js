@@ -1,6 +1,8 @@
 const channelList = {
     tech: [
+        "https://www.youtube.com/channel/UCcefcZRL2oaA_uBNeo5UOWg/videos",
         "https://www.youtube.com/user/Techquickie/videos",
+        "https://www.youtube.com/channel/UCeeFfhMcJa1kjtfZAGskOCA/videos",
         "https://www.youtube.com/user/TheVerge/videos",
         "https://www.youtube.com/user/lexfridman/videos",
         "https://www.youtube.com/user/unboxtherapy/videos"
@@ -24,4 +26,8 @@ const channelList = {
     softwareDevelopment: [
         "https://www.youtube.com/channel/UCtxCXg-UvSnTKPOzLH4wJaQ/videos"
     ]
+}
+
+module.exports = {
+    videoPages: channelList
 }
