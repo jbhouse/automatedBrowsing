@@ -1,9 +1,7 @@
 var channels = require('./YoutubeChannelList')
 const puppeteer = require('puppeteer');
-// let fs = require('fs');
 
 (async () => {
-    // OPTION 1 - Launch new.
     const browser = await puppeteer.launch({
         headless: false // Puppeteer is 'headless' by default.
     });
