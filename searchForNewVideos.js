@@ -13,7 +13,7 @@ async function openAllVideos(categories) {
                 let recentVideoCount = await page.evaluate(() => {
                     // we then check for recent videos
                     let recentVideos = Array.from(document.querySelectorAll('#metadata-line'))
-                        .filter(thumbNail => thumbNail.textContent.includes('hours') || thumbNail.textContent.includes('day ago'));
+                        .filter(thumbNail => thumbNail.textContent.includes('hour') || thumbNail.textContent.includes('day ago'));
                     // if there are any, we click the link to the first one and return the total amount of recent videos
                     if (recentVideos.length > 0) recentVideos[0].click();
                     return recentVideos.length;
