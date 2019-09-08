@@ -1,15 +1,13 @@
 var channels = require('./YoutubeChannelList')
 const puppeteer = require('puppeteer');
 
-(async () => {
+async function openAllVideos(categories) {
     const browser = await puppeteer.launch({
         headless: false // Puppeteer is 'headless' by default.
     });
 
-    Object.keys(channels.videoPages).forEach(topic => {
-        let allChannelsInCategoryArray = channels.videoPages[topic]
-        allChannelsInCategoryArray.forEach(async (channelUrl) => {
-
+    categories.forEach(topic => {
+        channels.videoPages[topic].forEach(async (channelUrl) => {
             // for each channel we go to their video page
             openNewPageToUrl(browser, channelUrl).then(async (page) => {
                 let recentVideoCount = await page.evaluate(() => {
@@ -17,9 +15,7 @@ const puppeteer = require('puppeteer');
                     let recentVideos = Array.from(document.querySelectorAll('#metadata-line'))
                         .filter(thumbNail => thumbNail.textContent.includes('hours') || thumbNail.textContent.includes('day ago'));
                     // if there are any, we click the link to the first one and return the total amount of recent videos
-                    if (recentVideos.length > 0) {
-                        recentVideos[0].click();
-                    }
+                    if (recentVideos.length > 0) recentVideos[0].click();
                     return recentVideos.length;
                 });
                 // if there is more than one new video, we go and open that channel again, and click the links on the rest of the videos
@@ -39,7 +35,7 @@ const puppeteer = require('puppeteer');
             })
         })
     })
-})();
+}
 
 
 
@@ -52,3 +48,5 @@ async function openNewPageToUrl(browser, urlString) {
 
     return page;
 }
+
+openAllVideos(process.argv.slice(2));
