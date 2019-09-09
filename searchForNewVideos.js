@@ -22,17 +22,17 @@ async function openAllVideos(categories) {
                 await page.setViewport({ width: screenSize.width - 5, height: screenSize.height - 160 });
 
                 let recentVideoCount = await page.evaluate(() => {
-                    console.log("width: " + document.width);
-                    console.log("height: " + document.height);
                     // we then check for recent videos
                     let recentVideos = Array.from(document.querySelectorAll('#metadata-line'))
                         .filter(thumbNail => thumbNail.textContent.includes('minute') || thumbNail.textContent.includes('hour') || thumbNail.textContent.includes('day ago'));
                     // if there are any, we click the link to the first one and return the total amount of recent videos
-                    if (recentVideos.length > 0) recentVideos[0].click();
+                    if (recentVideos.length > 0) {
+                        recentVideos[0].click();
+                    }
                     return recentVideos.length;
                 });
                 // if there is more than one new video, we go and open that channel again, and click the links on the rest of the videos
-                // this is pretty inefficient and annoying, but for now, it does the job. improve this later
+                // this is pretty inefficient and annoying, but for now, it does the job. improve this later by figuring out how to 'open in new tab'
                 if (recentVideoCount > 1) {
                     for (let i = 1; i < recentVideoCount; i++) {
                         let newPage = await openNewPageToUrl(browser, channelUrl);
@@ -54,6 +54,8 @@ async function openAllVideos(categories) {
                         }, i);
 
                     }
+                } else if (recentVideoCount == 0) {
+                    page.close();
                 }
             })
         })

@@ -6,7 +6,8 @@ const channelList = {
         "https://www.youtube.com/user/TheVerge/videos",
         "https://www.youtube.com/user/lexfridman/videos",
         "https://www.youtube.com/user/MobileTechReview/videos",
-        "https://www.youtube.com/user/unboxtherapy/videos"
+        "https://www.youtube.com/user/unboxtherapy/videos",
+        "https://www.youtube.com/user/ZONEofTECH/videos"
     ],
 
     learning: [
@@ -16,6 +17,7 @@ const channelList = {
 
     entertainment: [
         "https://www.youtube.com/user/Aphromoo/videos",
+        "https://www.youtube.com/channel/UCJfWVqSGIN4OYkhPzmILuSA/videos",
         "https://www.youtube.com/channel/UCj1NEvOGuhf9UoknPBF3pbg/videos",
         "https://www.youtube.com/channel/UCO4NTLDIYKEV_sEwjZq7ghw/videos",
         "https://www.youtube.com/channel/UCXNd7DlQsKT9-nP_CKTNisQ/videos",
