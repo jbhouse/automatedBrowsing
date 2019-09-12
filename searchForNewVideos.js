@@ -10,10 +10,17 @@ async function openAllVideos(categories) {
 
     categories.forEach(topic => {
         channels.videoPages[topic].forEach(async (channelUrl) => {
+            // add channel to its respective topic in the previously viewed list if it is not already present
+            if (undefined == previouslyViewedVideos[topic]) {
+                previouslyViewedVideos[topic] = {};
+            }
+            if (undefined == previouslyViewedVideos[topic][channelUrl]) {
+                previouslyViewedVideos[topic][channelUrl] = [];
+            }
+
             // for each channel we go to their video page
             openNewPageToUrl(browser, channelUrl).then(async (page) => {
 
-                let idk = [];
                 // set viewport to be set equivalent to the screen size roughly offset to the margins of the chrome browser + bottom toolbar
                 let screenSize = await page.evaluate(() => {
                     return {
@@ -23,7 +30,7 @@ async function openAllVideos(categories) {
                 })
                 await page.setViewport({ width: screenSize.width, height: screenSize.height - 10 });
 
-                let recentUnviewedVideoTitles = await page.evaluate((previouslyViewedVideos, topic) => {
+                let recentUnviewedVideoTitles = await page.evaluate((previouslyViewedVideos, topic, channelUrl) => {
                     // we then check for recent videos
                     let recentVideos = Array.from(document.querySelectorAll('#metadata-line'))
                         .filter(thumbNail => thumbNail.textContent.includes('minute') || thumbNail.textContent.includes('hour') || thumbNail.textContent.includes('day ago'));
@@ -35,7 +42,7 @@ async function openAllVideos(categories) {
                         .slice(0, recentVideoCount)
                         .map(element => element.textContent)
                         .forEach(element => {
-                            if (previouslyViewedVideos[topic].includes(element)) {
+                            if (previouslyViewedVideos[topic][channelUrl].includes(element)) {
                                 if (recentVideoCount > 0) {
                                     recentVideoCount--;
                                 }
@@ -48,15 +55,16 @@ async function openAllVideos(categories) {
                     }
                     return {
                         videosTitles: titles.slice(0, recentVideoCount),
-                        videosSkipped: totalSkipped
+                        videosSkipped: totalSkipped,
+                        url: channelUrl
                     }
-                }, previouslyViewedVideos, topic);
+                }, previouslyViewedVideos, topic, channelUrl);
 
                 // remove filter values that belong to videos too old to be selected from
-                previouslyViewedVideos[topic] = previouslyViewedVideos[topic].slice(previouslyViewedVideos[topic].length - recentUnviewedVideoTitles.videosSkipped, previouslyViewedVideos[topic].length);
+                previouslyViewedVideos[topic][channelUrl] = previouslyViewedVideos[topic][channelUrl].slice(previouslyViewedVideos[topic][channelUrl].length - recentUnviewedVideoTitles.videosSkipped, previouslyViewedVideos[topic][channelUrl].length);
 
                 recentUnviewedVideoTitles.videosTitles.forEach(element => {
-                    previouslyViewedVideos[topic].push(element);
+                    previouslyViewedVideos[topic][channelUrl].push(element);
                 });
 
                 fs.writeFileSync('./previouslyViewed.json', JSON.stringify(previouslyViewedVideos, null, 2));
@@ -107,6 +115,3 @@ async function openNewPageToUrl(browser, urlString) {
 }
 
 openAllVideos(process.argv.slice(2));
-
-// fs.writeFileSync('./previouslyViewed.json', JSON.stringify(page.url(), null, 2));
-// newlyViewedVideos.push(newPage.urlString())
