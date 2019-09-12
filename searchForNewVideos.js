@@ -5,7 +5,7 @@ var previouslyViewedVideos = require('./previouslyViewed.json')
 
 async function openAllVideos(categories) {
     const browser = await puppeteer.launch({
-        headless: false, args: ['--start-maximized'] // Puppeteer is 'headless' by default.
+        // headless: false, args: ['--start-maximized'] // Puppeteer is 'headless' by default.
     });
 
     categories.forEach(topic => {
@@ -34,7 +34,9 @@ async function openAllVideos(categories) {
                         .map(element => element.textContent)
                         .forEach(element => {
                             if (previouslyViewedVideos[topic].includes(element)) {
-                                recentVideoCount--;
+                                if (recentVideoCount > 0) {
+                                    recentVideoCount--;
+                                }
                             }
                             titles.push(element)
                         });
@@ -44,12 +46,9 @@ async function openAllVideos(categories) {
                     return titles.slice(0, recentVideoCount)
                 }, previouslyViewedVideos, topic);
 
-                console.log(recentUnviewedVideoTitles);
                 recentUnviewedVideoTitles.forEach(element => {
                     previouslyViewedVideos[topic].push(element);
                 });
-
-                // previouslyViewedVideos[topic].push(recentUnviewedVideoTitles);
 
                 fs.writeFileSync('./previouslyViewed.json', JSON.stringify(previouslyViewedVideos, null, 2));
 
