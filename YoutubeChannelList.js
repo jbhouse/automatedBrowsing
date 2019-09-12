@@ -7,12 +7,15 @@ const channelList = {
         "https://www.youtube.com/user/lexfridman/videos",
         "https://www.youtube.com/user/MobileTechReview/videos",
         "https://www.youtube.com/user/unboxtherapy/videos",
-        "https://www.youtube.com/user/ZONEofTECH/videos"
+        "https://www.youtube.com/user/ZONEofTECH/videos",
+        "https://www.youtube.com/user/LinusTechTips/videos",
+        "https://www.youtube.com/channel/UCVYamHliCI9rw1tHR1xbkfw/videos"
     ],
 
     learning: [
         "https://www.youtube.com/user/JordanPetersonVideos/videos",
-        "https://www.youtube.com/user/TEDxTalks/videos"
+        "https://www.youtube.com/user/TEDxTalks/videos",
+        "https://www.youtube.com/user/coldfustion/videos"
     ],
 
     entertainment: [
