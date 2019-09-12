@@ -5,7 +5,7 @@ var previouslyViewedVideos = require('./previouslyViewed.json')
 
 async function openAllVideos(categories) {
     const browser = await puppeteer.launch({
-        // headless: false, args: ['--start-maximized'] // Puppeteer is 'headless' by default.
+        headless: false, args: ['--start-maximized'] // Puppeteer is 'headless' by default.
     });
 
     categories.forEach(topic => {
@@ -29,24 +29,33 @@ async function openAllVideos(categories) {
                         .filter(thumbNail => thumbNail.textContent.includes('minute') || thumbNail.textContent.includes('hour') || thumbNail.textContent.includes('day ago'));
                     // if there are any, we click the link to the first one and return the total amount of recent videos
                     let recentVideoCount = recentVideos.length;
+                    let totalSkipped = 0;
                     let titles = [];
                     Array.from(document.querySelectorAll('#video-title'))
+                        .slice(0, recentVideoCount)
                         .map(element => element.textContent)
                         .forEach(element => {
                             if (previouslyViewedVideos[topic].includes(element)) {
                                 if (recentVideoCount > 0) {
                                     recentVideoCount--;
                                 }
+                                totalSkipped++;
                             }
                             titles.push(element)
                         });
                     if (recentVideoCount > 0) {
                         recentVideos[0].click();
                     }
-                    return titles.slice(0, recentVideoCount)
+                    return {
+                        videosTitles: titles.slice(0, recentVideoCount),
+                        videosSkipped: totalSkipped
+                    }
                 }, previouslyViewedVideos, topic);
 
-                recentUnviewedVideoTitles.forEach(element => {
+                // remove filter values that belong to videos too old to be selected from
+                previouslyViewedVideos[topic] = previouslyViewedVideos[topic].slice(previouslyViewedVideos[topic].length - recentUnviewedVideoTitles.videosSkipped, previouslyViewedVideos[topic].length);
+
+                recentUnviewedVideoTitles.videosTitles.forEach(element => {
                     previouslyViewedVideos[topic].push(element);
                 });
 
@@ -54,8 +63,8 @@ async function openAllVideos(categories) {
 
                 // if there is more than one new video, we go and open that channel again, and click the links on the rest of the videos
                 // this is pretty inefficient and annoying, but for now, it does the job. improve this later by figuring out how to 'open in new tab'
-                if (recentUnviewedVideoTitles.length > 1) {
-                    for (let i = 1; i < recentUnviewedVideoTitles.length; i++) {
+                if (recentUnviewedVideoTitles.videosTitles.length > 1) {
+                    for (let i = 1; i < recentUnviewedVideoTitles.videosTitles.length; i++) {
                         let newPage = await openNewPageToUrl(browser, channelUrl);
 
                         // set viewport to be set equivalent to the screen size roughly offset to the margins of the chrome browser + bottom toolbar
@@ -75,7 +84,7 @@ async function openAllVideos(categories) {
                         }, i);
 
                     }
-                } else if (recentUnviewedVideoTitles.length == 0) {
+                } else if (recentUnviewedVideoTitles.videosTitles.length == 0) {
                     page.close();
                 }
             })
