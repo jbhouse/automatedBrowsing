@@ -58,18 +58,13 @@ async function openAllVideos(categories) {
                     });
 
                     let downloadButtonSelector = '#mainBox > div.main-result.bg-grey > div > div.c-result__content > div:nth-child(2) > table > tbody > tr:nth-child(1) > td.txt-center > a';
-
-                    await page.waitForSelector(downloadButtonSelector)
-                    await page.evaluate((selector) => {
-                        document.querySelector(selector).click();
-                    }, downloadButtonSelector);
-
                     let downloadConfirmSelector = '#process-result > div > a';
 
-                    await page.waitForSelector(downloadConfirmSelector)
-                    await page.evaluate((selector) => {
-                        document.querySelector(selector).click();
-                    }, downloadConfirmSelector);
+                    navigateDownloadPage(page, downloadButtonSelector, downloadConfirmSelector).catch(async (err) => {
+                        navigateDownloadPage(page, downloadButtonSelector, downloadConfirmSelector).catch(async (err) => {
+                            navigateDownloadPage(newPage, downloadButtonSelector, downloadConfirmSelector)
+                        })
+                    })
 
                 }
                 // remove filter values that belong to videos too old to be selected from
@@ -99,29 +94,33 @@ async function openAllVideos(categories) {
                         });
 
                         let downloadButtonSelector = '#mainBox > div.main-result.bg-grey > div > div.c-result__content > div:nth-child(2) > table > tbody > tr:nth-child(1) > td.txt-center > a';
-
-                        await newPage.waitForSelector(downloadButtonSelector)
-                        await newPage.evaluate((selector) => {
-                            document.querySelector(selector).click();
-                        }, downloadButtonSelector);
-
                         let downloadConfirmSelector = '#process-result > div > a';
 
-                        await newPage.waitForSelector(downloadConfirmSelector)
-                        await newPage.evaluate((selector) => {
-                            document.querySelector(selector).click();
-                        }, downloadConfirmSelector);
-
-                        // newPage.close();
+                        navigateDownloadPage(newPage, downloadButtonSelector, downloadConfirmSelector).catch(async (err) => {
+                            navigateDownloadPage(newPage, downloadButtonSelector, downloadConfirmSelector).catch(async (err) => {
+                                navigateDownloadPage(newPage, downloadButtonSelector, downloadConfirmSelector)
+                            })
+                        })
 
                     }
                 } else if (recentUnviewedVideoTitles.videosTitles.length == 0) {
-                    // page.close();
-                    await browser.close();
+                    page.close()
                 }
             })
         })
     })
+}
+
+async function navigateDownloadPage(page, downloadButtonSelector, downloadConfirmSelector) {
+    await page.waitForSelector(downloadButtonSelector)
+    await page.evaluate((selector) => {
+        document.querySelector(selector).click();
+    }, downloadButtonSelector);
+
+    await page.waitForSelector(downloadConfirmSelector);
+    await page.evaluate((selector) => {
+        document.querySelector(selector).click();
+    }, downloadConfirmSelector);
 }
 
 async function openNewPageToUrl(browser, urlString) {
@@ -130,8 +129,6 @@ async function openNewPageToUrl(browser, urlString) {
     await page.goto(urlString, {
         waitUntil: 'networkidle0' // 'networkidle0' is very useful for SPAs.
     });
-
-    await page.setViewport({ width: 1920, height: 920 });
 
     return page;
 }
