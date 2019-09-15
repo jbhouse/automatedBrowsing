@@ -21,15 +21,6 @@ async function openAllVideos(categories) {
             // for each channel we go to their video page
             openNewPageToUrl(browser, channelUrl).then(async (page) => {
 
-                // set viewport to be set equivalent to the screen size roughly offset to the margins of the chrome browser + bottom toolbar
-                let screenSize = await page.evaluate(() => {
-                    return {
-                        width: window.screen.width,
-                        height: window.screen.height
-                    };
-                })
-                await page.setViewport({ width: screenSize.width, height: screenSize.height - 10 });
-
                 let recentUnviewedVideoTitles = await page.evaluate((previouslyViewedVideos, topic, channelUrl) => {
                     // we then check for recent videos
                     let recentVideos = Array.from(document.querySelectorAll('#metadata-line'))
@@ -60,6 +51,27 @@ async function openAllVideos(categories) {
                     }
                 }, previouslyViewedVideos, topic, channelUrl);
 
+                if (recentUnviewedVideoTitles.videosTitles.length > 0) {
+
+                    await page.goto(page.url().split('youtube')[0] + "youtubepp" + page.url().split('youtube')[1], {
+                        waitUntil: 'networkidle0'
+                    });
+
+                    let downloadButtonSelector = '#mainBox > div.main-result.bg-grey > div > div.c-result__content > div:nth-child(2) > table > tbody > tr:nth-child(1) > td.txt-center > a';
+
+                    await page.waitForSelector(downloadButtonSelector)
+                    await page.evaluate((selector) => {
+                        document.querySelector(selector).click();
+                    }, downloadButtonSelector);
+
+                    let downloadConfirmSelector = '#process-result > div > a';
+
+                    await page.waitForSelector(downloadConfirmSelector)
+                    await page.evaluate((selector) => {
+                        document.querySelector(selector).click();
+                    }, downloadConfirmSelector);
+
+                }
                 // remove filter values that belong to videos too old to be selected from
                 previouslyViewedVideos[topic][channelUrl] = previouslyViewedVideos[topic][channelUrl].slice(previouslyViewedVideos[topic][channelUrl].length - recentUnviewedVideoTitles.videosSkipped, previouslyViewedVideos[topic][channelUrl].length);
 
@@ -75,32 +87,42 @@ async function openAllVideos(categories) {
                     for (let i = 1; i < recentUnviewedVideoTitles.videosTitles.length; i++) {
                         let newPage = await openNewPageToUrl(browser, channelUrl);
 
-                        // set viewport to be set equivalent to the screen size roughly offset to the margins of the chrome browser + bottom toolbar
-                        let screenSize = await page.evaluate(() => {
-                            return {
-                                width: window.screen.width,
-                                height: window.screen.height
-                            };
-                        })
-                        await page.setViewport({ width: screenSize.width - 5, height: screenSize.height - 30 });
-
-                        newPage.evaluate((i) => {
+                        await newPage.evaluate((i) => {
                             let recentVideos = Array.from(document.querySelectorAll('#metadata-line'))
                                 .filter(thumbNail => thumbNail.textContent.includes('hours') || thumbNail.textContent.includes('day ago'));
 
                             recentVideos[i].click();
                         }, i);
 
+                        await newPage.goto(newPage.url().split('youtube')[0] + "youtubepp" + newPage.url().split('youtube')[1], {
+                            waitUntil: 'networkidle0'
+                        });
+
+                        let downloadButtonSelector = '#mainBox > div.main-result.bg-grey > div > div.c-result__content > div:nth-child(2) > table > tbody > tr:nth-child(1) > td.txt-center > a';
+
+                        await newPage.waitForSelector(downloadButtonSelector)
+                        await newPage.evaluate((selector) => {
+                            document.querySelector(selector).click();
+                        }, downloadButtonSelector);
+
+                        let downloadConfirmSelector = '#process-result > div > a';
+
+                        await newPage.waitForSelector(downloadConfirmSelector)
+                        await newPage.evaluate((selector) => {
+                            document.querySelector(selector).click();
+                        }, downloadConfirmSelector);
+
+                        // newPage.close();
+
                     }
                 } else if (recentUnviewedVideoTitles.videosTitles.length == 0) {
-                    page.close();
+                    // page.close();
+                    await browser.close();
                 }
             })
         })
     })
 }
-
-
 
 async function openNewPageToUrl(browser, urlString) {
     const page = await browser.newPage();
