@@ -1,11 +1,13 @@
-var channels = require('./YoutubeChannelList')
+var channels = require('./YoutubeChannelList');
 const puppeteer = require('puppeteer');
 var fs = require('fs');
-var previouslyViewedVideos = require('./searchForNewVideos.json')
+var previouslyViewedVideos = require('./searchForNewVideos.json');
+let downloadButtonSelector = '#mainBox > div.main-result.bg-grey > div > div.c-result__content > div:nth-child(2) > table > tbody > tr:nth-child(1) > td.txt-center > a';
+let downloadConfirmSelector = '#process-result > div > a';
 
 async function openAllVideos(categories) {
     const browser = await puppeteer.launch({
-        headless: false, args: ['--start-maximized'] // Puppeteer is 'headless' by default.
+        headless: false//, args: ['--start-maximized'] // Puppeteer is 'headless' by default.
     });
 
     categories.forEach(topic => {
@@ -21,7 +23,8 @@ async function openAllVideos(categories) {
             // for each channel we go to their video page
             openNewPageToUrl(browser, channelUrl).then(async (page) => {
 
-                let recentUnviewedVideoTitles = await page.evaluate((previouslyViewedVideos, topic, channelUrl) => {
+                await page.waitForSelector('#metadata-line');
+                let recentUnviewedVideoTitles = await page.evaluate(async (previouslyViewedVideos, topic, channelUrl) => {
                     // we then check for recent videos
                     let recentVideos = Array.from(document.querySelectorAll('#metadata-line'))
                         .filter(thumbNail => thumbNail.textContent.includes('minute') || thumbNail.textContent.includes('hour') || thumbNail.textContent.includes('day ago'));
@@ -39,7 +42,7 @@ async function openAllVideos(categories) {
                                 }
                                 totalSkipped++;
                             }
-                            titles.push(element)
+                            titles.push(element);
                         });
                     if (recentVideoCount > 0) {
                         recentVideos[0].click();
@@ -48,23 +51,18 @@ async function openAllVideos(categories) {
                         videosTitles: titles.slice(0, recentVideoCount),
                         videosSkipped: totalSkipped,
                         url: channelUrl
-                    }
+                    };
                 }, previouslyViewedVideos, topic, channelUrl);
 
                 if (recentUnviewedVideoTitles.videosTitles.length > 0) {
 
-                    await page.goto(page.url().split('youtube')[0] + "youtubepp" + page.url().split('youtube')[1], {
-                        waitUntil: 'networkidle0'
-                    });
-
-                    let downloadButtonSelector = '#mainBox > div.main-result.bg-grey > div > div.c-result__content > div:nth-child(2) > table > tbody > tr:nth-child(1) > td.txt-center > a';
-                    let downloadConfirmSelector = '#process-result > div > a';
+                    goToDownloadPage(page);
 
                     navigateDownloadPage(page, downloadButtonSelector, downloadConfirmSelector).catch(async (err) => {
                         navigateDownloadPage(page, downloadButtonSelector, downloadConfirmSelector).catch(async (err) => {
-                            navigateDownloadPage(newPage, downloadButtonSelector, downloadConfirmSelector)
-                        })
-                    })
+                            navigateDownloadPage(page, downloadButtonSelector, downloadConfirmSelector);
+                        });
+                    });
 
                 }
                 // remove filter values that belong to videos too old to be selected from
@@ -74,45 +72,51 @@ async function openAllVideos(categories) {
                     previouslyViewedVideos[topic][channelUrl].push(element);
                 });
 
+                // write video title to json file
                 fs.writeFileSync(process.argv[1] + 'on', JSON.stringify(previouslyViewedVideos, null, 2));
 
                 // if there is more than one new video, we go and open that channel again, and click the links on the rest of the videos
                 // this is pretty inefficient and annoying, but for now, it does the job. improve this later by figuring out how to 'open in new tab'
                 if (recentUnviewedVideoTitles.videosTitles.length > 1) {
                     for (let i = 1; i < recentUnviewedVideoTitles.videosTitles.length; i++) {
-                        let newPage = await openNewPageToUrl(browser, channelUrl);
-
-                        await newPage.evaluate((i) => {
-                            let recentVideos = Array.from(document.querySelectorAll('#metadata-line'))
-                                .filter(thumbNail => thumbNail.textContent.includes('hours') || thumbNail.textContent.includes('day ago'));
-
-                            recentVideos[i].click();
-                        }, i);
-
-                        await newPage.goto(newPage.url().split('youtube')[0] + "youtubepp" + newPage.url().split('youtube')[1], {
-                            waitUntil: 'networkidle0'
-                        });
-
-                        let downloadButtonSelector = '#mainBox > div.main-result.bg-grey > div > div.c-result__content > div:nth-child(2) > table > tbody > tr:nth-child(1) > td.txt-center > a';
-                        let downloadConfirmSelector = '#process-result > div > a';
-
-                        navigateDownloadPage(newPage, downloadButtonSelector, downloadConfirmSelector).catch(async (err) => {
-                            navigateDownloadPage(newPage, downloadButtonSelector, downloadConfirmSelector).catch(async (err) => {
-                                navigateDownloadPage(newPage, downloadButtonSelector, downloadConfirmSelector)
-                            })
-                        })
-
+                        downloadRecentVideo(browser, channelUrl, i);
                     }
                 } else if (recentUnviewedVideoTitles.videosTitles.length == 0) {
-                    page.close()
+                    page.close();
                 }
-            })
-        })
-    })
+            });
+        });
+    });
+}
+
+async function downloadRecentVideo(browser, channelUrl, index) {
+    let newPage = await openNewPageToUrl(browser, channelUrl);
+
+    await newPage.waitForSelector('#metadata-line');
+    await newPage.evaluate(async (index) => {
+        let recentVideos = Array.from(document.querySelectorAll('#metadata-line'))
+            .filter(thumbNail => thumbNail.textContent.includes('minute') || thumbNail.textContent.includes('hour') || thumbNail.textContent.includes('day ago'));
+
+        recentVideos[index].click();
+    }, index);
+
+    goToDownloadPage(newPage);
+
+    navigateDownloadPage(newPage, downloadButtonSelector, downloadConfirmSelector).catch(async (err) => {
+        navigateDownloadPage(newPage, downloadButtonSelector, downloadConfirmSelector).catch(async (err) => {
+            navigateDownloadPage(newPage, downloadButtonSelector, downloadConfirmSelector);
+        });
+    });
+}
+
+async function goToDownloadPage(page) {
+    await page.goto(page.url().split('youtube')[0] + "youtubepp" + page.url().split('youtube')[1], {
+        waitUntil: 'networkidle0'
+    });
 }
 
 async function navigateDownloadPage(page, downloadButtonSelector, downloadConfirmSelector) {
-    await page.waitForSelector(downloadButtonSelector)
+    await page.waitForSelector(downloadButtonSelector);
     await page.evaluate((selector) => {
         document.querySelector(selector).click();
     }, downloadButtonSelector);
