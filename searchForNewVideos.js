@@ -1,7 +1,7 @@
 var channels = require('./YoutubeChannelList')
 const puppeteer = require('puppeteer');
 var fs = require('fs');
-var previouslyViewedVideos = require('./previouslyViewed.json')
+var previouslyViewedVideos = require('./searchForNewVideos.json')
 
 async function openAllVideos(categories) {
     const browser = await puppeteer.launch({
@@ -74,7 +74,7 @@ async function openAllVideos(categories) {
                     previouslyViewedVideos[topic][channelUrl].push(element);
                 });
 
-                fs.writeFileSync('./previouslyViewed.json', JSON.stringify(previouslyViewedVideos, null, 2));
+                fs.writeFileSync(process.argv[1] + 'on', JSON.stringify(previouslyViewedVideos, null, 2));
 
                 // if there is more than one new video, we go and open that channel again, and click the links on the rest of the videos
                 // this is pretty inefficient and annoying, but for now, it does the job. improve this later by figuring out how to 'open in new tab'
