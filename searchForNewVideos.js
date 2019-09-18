@@ -31,16 +31,21 @@ async function openAllVideos(categories) {
                     // if there are any, we click the link to the first one and return the total amount of recent videos
                     let titles = [];
                     let totalSkipped = 0;
-                    Array.from(document.querySelectorAll('#video-title'))
+                    let videoTitles = Array.from(document.querySelectorAll('#video-title'))
                         .slice(0, recentVideos.length)
-                        .map(element => element.textContent)
-                        .forEach(element => {
-                            if (previouslyViewedVideos[topic][channelUrl].includes(element)) {
-                                totalSkipped++;
-                            } else {
-                                titles.push(element);
-                            }
-                        });
+                        .map(element => element.textContent);
+
+                    for (let i = 0; i < videoTitles.length; i++) {
+                        const element = videoTitles[i];
+                        if (previouslyViewedVideos[topic][channelUrl].includes(element)) {
+                            // remove from recent videos
+                            recentVideos.splice(i, 1);
+                            totalSkipped++;
+                        } else {
+                            titles.push(element);
+                        }
+                    }
+
                     if (titles.length > 0) {
                         recentVideos[0].click();
                     }
