@@ -29,28 +29,24 @@ async function openAllVideos(categories) {
                     let recentVideos = Array.from(document.querySelectorAll('#metadata-line'))
                         .filter(thumbNail => thumbNail.textContent.includes('minute') || thumbNail.textContent.includes('hour') || thumbNail.textContent.includes('day ago'));
                     // if there are any, we click the link to the first one and return the total amount of recent videos
-                    let recentVideoCount = recentVideos.length;
-                    let totalSkipped = 0;
                     let titles = [];
+                    let totalSkipped = 0;
                     Array.from(document.querySelectorAll('#video-title'))
-                        .slice(0, recentVideoCount)
+                        .slice(0, recentVideos.length)
                         .map(element => element.textContent)
                         .forEach(element => {
                             if (previouslyViewedVideos[topic][channelUrl].includes(element)) {
-                                if (recentVideoCount > 0) {
-                                    recentVideoCount--;
-                                }
                                 totalSkipped++;
+                            } else {
+                                titles.push(element);
                             }
-                            titles.push(element);
                         });
-                    if (recentVideoCount > 0) {
+                    if (titles.length > 0) {
                         recentVideos[0].click();
                     }
                     return {
-                        videosTitles: titles.slice(0, recentVideoCount),
-                        videosSkipped: totalSkipped,
-                        url: channelUrl
+                        videosTitles: titles,
+                        videosSkipped: totalSkipped
                     };
                 }, previouslyViewedVideos, topic, channelUrl);
 
@@ -65,6 +61,7 @@ async function openAllVideos(categories) {
                     });
 
                 }
+
                 // remove filter values that belong to videos too old to be selected from
                 previouslyViewedVideos[topic][channelUrl] = previouslyViewedVideos[topic][channelUrl].slice(previouslyViewedVideos[topic][channelUrl].length - recentUnviewedVideoTitles.videosSkipped, previouslyViewedVideos[topic][channelUrl].length);
 
