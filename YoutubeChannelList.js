@@ -14,8 +14,10 @@ const channelList = {
 
     learning: [
         "https://www.youtube.com/user/JordanPetersonVideos/videos",
-        "https://www.youtube.com/user/TEDxTalks/videos",
-        "https://www.youtube.com/user/coldfustion/videos"
+        // "https://www.youtube.com/user/TEDxTalks/videos",
+        "https://www.youtube.com/user/coldfustion/videos",
+        "https://www.youtube.com/channel/UCgNg3vwj3xt7QOrcIDaHdFg/videos",
+        "https://www.youtube.com/channel/UCDhrtgAGXyecXofKYBNpRqA/videos"
     ],
 
     entertainment: [
@@ -26,7 +28,12 @@ const channelList = {
         "https://www.youtube.com/channel/UCXNd7DlQsKT9-nP_CKTNisQ/videos",
         "https://www.youtube.com/channel/UCBNcq7Kdw1F9LQ1zRpjeeWw/videos",
         "https://www.youtube.com/channel/UC01zP3AZBRBDRh-lbPFV5jA/videos",
-        "https://www.youtube.com/channel/UCXEYKr8jSDw9urOPR917LOQ/videos"
+        "https://www.youtube.com/channel/UCXEYKr8jSDw9urOPR917LOQ/videos",
+        "https://www.youtube.com/channel/UCERpgysn81hv0c0FXIjXsTg/videos",
+        "https://www.youtube.com/user/Pobelt/videos",
+        "https://www.youtube.com/channel/UCmEu9Y8nodUV0jvsR9NYLJA/videos",
+        "https://www.youtube.com/user/killertoast949/videos",
+        "https://www.youtube.com/user/dannyle6/videos"
     ],
 
     softwareDevelopment: [

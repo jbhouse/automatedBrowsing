@@ -58,12 +58,7 @@ async function openAllVideos(categories) {
                 if (recentUnviewedVideoTitles.videosTitles.length > 0) {
 
                     goToDownloadPage(page);
-
-                    navigateDownloadPage(page, downloadButtonSelector, downloadConfirmSelector).catch(async (err) => {
-                        navigateDownloadPage(page, downloadButtonSelector, downloadConfirmSelector).catch(async (err) => {
-                            navigateDownloadPage(page, downloadButtonSelector, downloadConfirmSelector);
-                        });
-                    });
+                    downloadVideoFromDownloadPage(page, downloadButtonSelector, downloadConfirmSelector).catch(err => console.log(err));
 
                 }
 
@@ -103,12 +98,7 @@ async function downloadRecentVideo(browser, channelUrl, index) {
     }, index);
 
     goToDownloadPage(newPage);
-
-    navigateDownloadPage(newPage, downloadButtonSelector, downloadConfirmSelector).catch(async (err) => {
-        navigateDownloadPage(newPage, downloadButtonSelector, downloadConfirmSelector).catch(async (err) => {
-            navigateDownloadPage(newPage, downloadButtonSelector, downloadConfirmSelector);
-        });
-    });
+    downloadVideoFromDownloadPage(newPage, downloadButtonSelector, downloadConfirmSelector).catch(err => console.log(err));
 }
 
 async function goToDownloadPage(page) {
@@ -127,6 +117,10 @@ async function navigateDownloadPage(page, downloadButtonSelector, downloadConfir
     await page.evaluate((selector) => {
         document.querySelector(selector).click();
     }, downloadConfirmSelector);
+}
+
+async function downloadVideoFromDownloadPage(page, downloadButtonSelector, downloadConfirmSelector) {
+    navigateDownloadPage(page, downloadButtonSelector, downloadConfirmSelector).catch(err => downloadVideoFromDownloadPage(page, downloadButtonSelector, downloadConfirmSelector));
 }
 
 async function openNewPageToUrl(browser, urlString) {
