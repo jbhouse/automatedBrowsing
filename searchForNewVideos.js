@@ -1,4 +1,5 @@
-var channels = require('./YoutubeChannelList.json');
+var channels = require('./searchForNewVideos.json');
+const { exec } = require('child_process');
 const puppeteer = require('puppeteer');
 var fs = require('fs');
 
@@ -7,9 +8,9 @@ async function openAllVideos() {
         headless: true//, args: ['--start-maximized'] // Puppeteer is 'headless' by default.
     });
 
-    channels.creators.forEach(creator => {
-       
-        openNewPageToUrl(browser, creator.channelUrl)
+    for(i = 0; i < channels.creators.length; i++) {
+        let creator = channels.creators[i];
+        await openNewPageToUrl(browser, creator.channelUrl)
         .then(async page => {
             await page.waitForSelector('#video-title-link');
             let videosToDownload = await page.evaluate(async (creator) => {
@@ -20,12 +21,26 @@ async function openAllVideos() {
                         link: vid.href
                     }));
             }, creator)
-            console.log(videosToDownload);
+            videosToDownload.forEach(async vid => {
+                console.log(`downloading video: '${vid.title}' for creator: '${creator.channelUrl}'`)
+                exec(`cd ~/Documents/videos && youtube-dl ${vid.link}`, (err, stdout, stderr) => {
+                    if (err) {
+                      console.log(`err: ${err}`)
+                      return;
+                    }
+                    console.log(`stdout: ${stdout}`);
+                    console.log(`stderr: ${stderr}`);
+                  });
+                creator.videos.push(vid.title);
+            })
         })
         .catch(exception => {
-            console.log(exception);
+            console.log(`creator: ${creator} had exception ${exception}`);
         })
-    })
+        if(i == channels.creators.length - 1) {
+            fs.writeFileSync(process.argv[1] + 'on', JSON.stringify(channels, null, 2));
+        } 
+    }
     
 }
 
