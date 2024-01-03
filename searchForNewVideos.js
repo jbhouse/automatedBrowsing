@@ -22,16 +22,17 @@ async function openAllVideos() {
                     }));
             }, creator)
             videosToDownload.forEach(async vid => {
-                console.log(`downloading video: '${vid.title}' for creator: '${creator.channelUrl}'`)
-                exec(`cd ~/Documents/videos && youtube-dl ${vid.link}`, (err, stdout, stderr) => {
+                console.log(`downloading video: '${vid.title}' for creator: '${creator.channelName}'`)
+                exec(`mkdir -p ~/Documents/videos/${creator.channelName} && cd ~/Documents/videos/${creator.channelName} && youtube-dl ${vid.link}`, (err, stdout, stderr) => {
                     if (err) {
                       console.log(`err: ${err}`)
                       return;
+                    } else {
+                        console.log(`stdout: ${stdout}`);
+                        console.log(`stderr: ${stderr}`);
+                        creator.videos.push(vid.title);
                     }
-                    console.log(`stdout: ${stdout}`);
-                    console.log(`stderr: ${stderr}`);
                   });
-                creator.videos.push(vid.title);
             })
         })
         .catch(exception => {
