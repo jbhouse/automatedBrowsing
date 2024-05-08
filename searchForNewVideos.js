@@ -27,13 +27,9 @@ async function openAllVideos() {
                 console.log(`downloading video: '${vid.title}' for creator: '${creator.channelName}'`);
                 exec(`mkdir -p ~/Documents/videos/${creator.channelName} && cd ~/Documents/videos/${creator.channelName} && youtube-dl -f 140 ${vid.link}`, (err, stdout, stderr) => {
                     if (err) {
-                        console.log("--------------");
-                        console.log(`mkdir -p ~/Documents/videos/${creator.channelName} && cd ~/Documents/videos/${creator.channelName} && youtube-dl -f 140 ${vid.link}`);
-                        console.log("--------------");
-                        console.log(`err: ${err}`)
+                        retryDownload(creator, vid, 0);
                         return;
                     } else {
-                        console.log(`stderr: ${stderr}`)
                         console.log(`${stdout}`);
                         console.log("==================");
                         console.log(`downloaded ${vid.title}`);
@@ -51,6 +47,35 @@ async function openAllVideos() {
         })
     }
     
+}
+
+function retryDownload(creator, vid, count) {
+    exec(`cd ~/Documents/videos/${creator.channelName} && youtube-dl -f 140 ${vid.link}`, (err, stdout, stderr) => {
+        if (err) {
+            count++;
+            if (count < 10) {
+                console.log(`retrying download. count ${count} for video ${vid.title}`);
+                retryDownload(creator, vid, count)
+            } else {
+                console.log("--------------");
+                console.log(`cd ~/Documents/videos/${creator.channelName} && youtube-dl -f 140 ${vid.link}`);
+                console.log(`err: ${err}`)
+                console.log("--------------");
+            }
+            return;
+        } else {
+            console.log(`${stdout}`);
+            console.log("==================");
+            console.log(`downloaded ${vid.title}`);
+            console.log("==================");
+            console.log(`from link ${vid.link}`);
+            console.log("==================");
+            console.log(`from creator ${creator.channelName}`);
+            console.log("==================");
+            creator.videos.push(vid.link);
+            fs.writeFileSync(process.argv[1] + 'on', JSON.stringify(channels, null, 2));
+        }
+      });
 }
 
 async function openNewPageToUrl(browser, urlString) {
