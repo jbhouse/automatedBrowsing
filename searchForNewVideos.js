@@ -25,7 +25,7 @@ async function openAllVideos() {
             }, creator)
             videosToDownload.forEach(async vid => {
                 console.log(`downloading video: '${vid.title}' for creator: '${creator.channelName}'`);
-                exec(`mkdir -p ~/Documents/videos/${creator.channelName} && cd ~/Documents/videos/${creator.channelName} && youtube-dl -f 140 ${vid.link}`, (err, stdout, stderr) => {
+                exec(`mkdir -p ~/Documents/videos/${creator.channelName} && cd ~/Documents/videos/${creator.channelName} && yt-dlp ${vid.link} -f ba`, (err, stdout, stderr) => {
                     if (err) {
                         retryDownload(creator, vid, 0);
                         return;
@@ -50,7 +50,7 @@ async function openAllVideos() {
 }
 
 function retryDownload(creator, vid, count) {
-    exec(`cd ~/Documents/videos/${creator.channelName} && youtube-dl -f 140 ${vid.link}`, (err, stdout, stderr) => {
+    exec(`cd ~/Documents/videos/${creator.channelName} && yt-dlp ${vid.link}`, (err, stdout, stderr) => {
         if (err) {
             count++;
             if (count < 10) {
@@ -58,7 +58,7 @@ function retryDownload(creator, vid, count) {
                 retryDownload(creator, vid, count)
             } else {
                 console.log("--------------");
-                console.log(`cd ~/Documents/videos/${creator.channelName} && youtube-dl -f 140 ${vid.link}`);
+                console.log(`cd ~/Documents/videos/${creator.channelName} && yt-dlp ${vid.link}`);
                 console.log(`err: ${err}`)
                 console.log("--------------");
             }
