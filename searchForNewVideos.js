@@ -17,7 +17,7 @@ async function openAllVideos() {
             await page.waitForSelector('#video-title-link');
             let videosToDownload = await page.evaluate(async (creator) => {
                 return Array.from(document.querySelectorAll('#video-title-link'))
-                    .filter(video => !creator.videos.includes(video.href))
+                    .filter(video => !creator.videos.includes(video.href.split("&")[0]))
                     .map(vid => ({
                         title: vid.innerText,
                         link: vid.href
